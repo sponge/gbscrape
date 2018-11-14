@@ -1,0 +1,18 @@
+{
+  "name": "gblivescrape",
+  "version": "1.0.0",
+  "description": "",
+  "main": "main.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "cron": "^1.5.0",
+    "fetch-cookie": "^0.7.2",
+    "he": "^1.2.0",
+    "jsdom": "^13.0.0",
+    "node-fetch": "^2.2.1"
+  }
+}
