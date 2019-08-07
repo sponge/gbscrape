@@ -41,18 +41,20 @@ async function doPostWebhook(videoInfo) {
 
   const response = await fetch(webhook, opts);
 
-  console.log(response);
+  //console.log(response);
 }
 
 async function doLogin(username, password) {
   const loginPageResponse = await fetch('https://www.giantbomb.com/login-signup/');
   const loginPageDom = new JSDOM(await loginPageResponse.text());
-  const token = loginPageDom.window.document.querySelector('#form__token').getAttribute('value');
+  //const token = loginPageDom.window.document.querySelector('#form__token').getAttribute('value');
+  const token = loginPageDom.window.document.querySelector('input[name="form[_csrf_token]"').getAttribute('value')
 
   const params = new URLSearchParams();
   params.append('form[_username]', username);
   params.append('form[_password]', password);
-  params.append('form[_token]', token);
+  //params.append('form[_token]', token);
+  params.append('form[_csrf_token]', token);
    
   const response = await fetch('https://www.giantbomb.com/check-login/', { method: 'POST', body: params });
   const text = await response.text();
@@ -61,25 +63,37 @@ async function doLogin(username, password) {
 }
 
 async function checkLive() {
-  try {    
-    const url = 'https://www.giantbomb.com/live/livestreams/1'; 
+  try {
+    const chat = 'https://www.giantbomb.com/chat/';
+    const chatresp = await fetch(chat);
+    const chattext = await chatresp.text();
+    const chatdom = new JSDOM(chattext);
+
+    const livestreamurl = chatdom.window.document.querySelector('#player-iframe');
+
+    if (!livestreamurl) {
+      console.log('Stream not online, player-iframe not found');
+      return;
+    }
+
+    const url = `https://www.giantbomb.com${livestreamurl.getAttribute('src')}`;
     const response = await fetch(url);
     
-    // if (response.status != 200) {
-    //   console.log(`Stream not online.`);
-    //   return;
-    // }
+    if (response.status != 200) {
+      console.log('Stream not online.');
+      return;
+    }
 
-    // const streamText = await response.text();
-    // const dom = new JSDOM(streamText);
-    // const iframePlayer = dom.window.document.querySelector('#js-iframe-player-1');
+    const streamText = await response.text();
+    const dom = new JSDOM(streamText);
+    const iframePlayer = dom.window.document.querySelector('#js-iframe-player-1');
 
-    // if (iframePlayer === null) {
-    //   throw new Error("Couldn't find #js-iframe-player-1, aborting");
-    // }
+    if (iframePlayer === null) {
+      throw new Error("Couldn't find #js-iframe-player-1, aborting");
+    }
 
-    // const embedUrl = `https://www.giantbomb.com/${iframePlayer.getAttribute('src')}`;
-    const embedUrl = 'https://www.giantbomb.com/videos/embed/8635/?allow_gb=yes&ad_campaign_id=8635&autoplay=1';
+    const embedUrl = `https://www.giantbomb.com${iframePlayer.getAttribute('src')}`;
+    //const embedUrl = 'https://www.giantbomb.com/videos/embed/8635/?allow_gb=yes&ad_campaign_id=8635&autoplay=1';
     const embedResponse = await fetch(embedUrl);
 
     if (embedResponse.status != 200) {
